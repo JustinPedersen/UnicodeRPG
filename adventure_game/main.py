@@ -16,13 +16,13 @@ def main():
 
         result = console.choose_action('Choose an attack', hero.attack_actions)
 
-        if result == 1:
-            hero.perform_attack(monster, 1)
-        if result == 2:
-            hero.perform_attack(monster, 2)
-        if result == 3:
-            hero.perform_attack(monster, 3)
+        #
+        if result:
+            hero.perform_attack(monster, result)
+        else:
+            hero.kill()
 
+        # If the monster is dead, end the fight
         if not monster.alive:
             break
 

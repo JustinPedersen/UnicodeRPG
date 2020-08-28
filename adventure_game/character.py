@@ -99,6 +99,19 @@ class Character(object):
         target_character = self if not target_character else target_character
         target_character.health += heal_amount * multiplier
 
+    def rest(self):
+        """
+        TODO: Create a method for regeneration of stamina during a fight.
+        """
+
+    def kill(self):
+        """
+        Kill the current entity.
+        """
+        self.health = 0
+        self.alive = False
+        print(f'{self.name} has died.')
+
 
 class Monster(Character):
     def __init__(self, name):
