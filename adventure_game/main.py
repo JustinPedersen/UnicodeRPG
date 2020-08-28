@@ -16,7 +16,6 @@ def main():
 
         result = console.choose_action('Choose an attack', hero.attack_actions)
 
-        #
         if result:
             hero.perform_attack(monster, result)
         else:

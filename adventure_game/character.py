@@ -4,6 +4,11 @@ All character classes to defined here
 import random
 
 
+text_damage_dict = {0: ['frail', 'feeble', 'weakly', 'shaky', 'decrepit', 'faint'],
+                    1: ['powerful', 'brawny', 'sturdy', 'hefty', 'sharp', 'strong'],
+                    2: ['mighty', 'tremendous', 'heavy', 'enormous', 'mammoth', 'massive']}
+
+
 class Character(object):
     """
     Base Class for all characters to inherit from
@@ -50,6 +55,8 @@ class Character(object):
         # Calculate the damage + apply it.
         damage = self.random_value(0, self.strength, multiplier)
         target_character.health -= damage
+
+        # print(f'{self.name} "lashes out at" {target_character.name}, dealing a {verb} {damage}')
 
         # If health drops below 0, the character will die.
         if target_character.health <= 0:
