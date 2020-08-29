@@ -10,10 +10,14 @@ def main():
     monster = character.Monster('Wolf')
     hero = character.Character('Sheep')
 
+    print(hero.inventory)
+    print(hero.equipped)
+
     while hero.alive and monster.alive:
         # Player to attack
         console.draw_hud([hero, monster])
 
+        # Get an action from the player
         result = console.choose_action('Choose an attack', hero.attack_actions)
 
         if result:

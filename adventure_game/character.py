@@ -2,35 +2,45 @@
 All character classes to defined here
 """
 import random
-
-
-text_damage_dict = {0: ['frail', 'feeble', 'weakly', 'shaky', 'decrepit', 'faint'],
-                    1: ['powerful', 'brawny', 'sturdy', 'hefty', 'sharp', 'strong'],
-                    2: ['mighty', 'tremendous', 'heavy', 'enormous', 'mammoth', 'massive']}
+import console
 
 
 class Character(object):
     """
     Base Class for all characters to inherit from
+    TODO:
+        self.luck - Chance for a critical hit
     """
 
     def __init__(self, name):
         self.name = name
+
+        # basic attributes
         self.alive = True
         self.health = 100.0
         self.strength = 50.0
         self.stamina = 50
+        self.luck = 10
 
-        self.attack_actions = {1: {'type': 'light_attack',
-                                   'stamina': 10,
+        # Inventory and equipped items.
+        self.inventory = {'weapons': {0: {'item_name': 'bare_fists',
+                                          'damage_bonus': 10,
+                                          'durability': 0}}
+                          }
+
+        self.equipped = [self.inventory['weapons'][0]]
+
+        # Basic attack actions that are picked up and used by the console and actions methods.
+        self.attack_actions = {1: {'attack_type': 'light_attack',
+                                   'stamina_cost': 10,
                                    'damage_multiplier': 1
                                    },
-                               2: {'type': 'medium_attack',
-                                   'stamina': 20,
+                               2: {'attack_type': 'medium_attack',
+                                   'stamina_cost': 20,
                                    'damage_multiplier': 1.5
                                    },
-                               3: {'type': 'heavy_attack',
-                                   'stamina': 30,
+                               3: {'attack_type': 'heavy_attack',
+                                   'stamina_cost': 30,
                                    'damage_multiplier': 2
                                    }}
 
@@ -47,20 +57,28 @@ class Character(object):
 
     def __deal_damage(self, target_character, multiplier=1):
         """
-        Primary method for attacking and dealing damage.
+        Primary method for attacking and dealing damage. An attack will be performed for each item currently
+        equipped in the player's inventory. The damage is calculated by using the character's strength + the
+        weapon damage bonus to form the upper limit of damage possible.
 
-        :param object target_character: The character to attack.
+        :param class target_character: The character to attack.
         :param float|optional multiplier: The multiplier for the final result of the attack. 1 by Default.
         """
-        # Calculate the damage + apply it.
-        damage = self.random_value(0, self.strength, multiplier)
-        target_character.health -= damage
+        # Perform an attack for each item that is currently equipped.
+        for item in self.equipped:
+            # Calculate the damage + apply it.
+            upper_damage_limit = item['damage_bonus'] + self.strength
+            damage = self.random_value(0, upper_damage_limit, multiplier)
 
-        # print(f'{self.name} "lashes out at" {target_character.name}, dealing a {verb} {damage}')
+            # Update the user on what happened.
+            console.attack_update(item, self, target_character, damage)
 
-        # If health drops below 0, the character will die.
-        if target_character.health <= 0:
-            target_character.alive = False
+            # Remove the health
+            target_character.health -= damage
+
+            # If health drops below 0, the character will die.
+            if target_character.health <= 0:
+                target_character.kill()
 
     def _attack(self, target_character, stamina_cost, damage_multiplier):
         """
@@ -82,17 +100,17 @@ class Character(object):
             self.__deal_damage(target_character, multiplier=damage_multiplier / 2)
             self.stamina = 0
         else:
-            print('Not enough stamina to attack!')
+            print(f'{self.name} does not have enough stamina to attack!')
 
     def perform_attack(self, target_character, attack_index):
         """
         Perform a light attack onto a target character.
 
         :param int attack_index: Index number of the attack from self.attack_actions
-        :param object target_character: The character to target.
+        :param class target_character: The character to target.
         """
         self._attack(target_character=target_character,
-                     stamina_cost=self.attack_actions[attack_index]['stamina'],
+                     stamina_cost=self.attack_actions[attack_index]['stamina_cost'],
                      damage_multiplier=self.attack_actions[attack_index]['damage_multiplier'])
 
     def heal(self, heal_amount, target_character=None, multiplier=1):
@@ -100,7 +118,7 @@ class Character(object):
         Primary method for healing. By default, healing will be applied to self.
 
         :param float heal_amount: The amount to heal by.
-        :param object|optional target_character: The character to heal.
+        :param class|optional target_character: The character to heal.
         :param multiplier: The multiplier for the final result for healing. 1 by Default.
         """
         target_character = self if not target_character else target_character
@@ -123,5 +141,18 @@ class Character(object):
 class Monster(Character):
     def __init__(self, name):
         super().__init__(name)
+
+        # basic attributes
+        self.alive = True
         self.health = 120.0
+        self.strength = 50.0
         self.stamina = 30
+        self.luck = 10
+
+        # Inventory and equipped items.
+        self.inventory = {'weapons': {0: {'item_name': 'razor_claws',
+                                          'damage_bonus': 20,
+                                          'durability': 0}}
+                          }
+
+        self.equipped = [self.inventory['weapons'][0]]

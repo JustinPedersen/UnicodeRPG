@@ -1,6 +1,7 @@
 """
 Methods for writing out to the console or getting user input.
 """
+import random
 
 
 def draw_hud(characters):
@@ -41,7 +42,7 @@ def choose_action(header, actions_dict, tries=10):
     input_string = f'> {header}:\n'
 
     for index, action in actions_dict.items():
-        input_string += '{}. {:30s} [{}]\n'.format(index, action['type'], action['stamina'])
+        input_string += '{}. {:30s} [{}]\n'.format(index, action['attack_type'], action['stamina_cost'])
 
     # Present the player with the options
     print(input_string)
@@ -61,3 +62,66 @@ def choose_action(header, actions_dict, tries=10):
         tries_count += 1
         if tries_count >= tries:
             return 0
+
+
+def format_item_name(item_name):
+    """
+    Helper function to format item names neatly for better representation.
+
+    :param str item_name: The item's name
+    :return: Capitalised and separated name.
+    :rtype: str
+    """
+    return ' '.join([x.capitalize() for x in item_name.split('_')])
+
+
+def get_damage_verb(victim, damage):
+    """
+    Using the damage amount, and the character's health it was dealt to find the damage bracket 0-4.
+    From there pick a random word in that bracket and return it.
+
+    :param class victim: The class that received the attack.
+    :param float damage: The amount of damage dealt.
+    """
+    # Verbs to be used to describe damage amounts in order of severity.
+    damage_verbs_dict = {0: ['measly', 'frail', 'feeble', 'weakly', 'shaky', 'decrepit', 'faint', 'poor'],
+                         1: ['brawny', 'sturdy', 'hefty', 'sharp', 'strong'],
+                         2: ['mighty', 'tremendous', 'heavy', 'enormous', 'hefty', 'powerful'],
+                         3: ['crippling', 'crushing', 'mammoth', 'massive'],
+                         4: ['bone crushing', 'obliterating', 'annihilating', 'blackout', 'ravaging', 'paralyzing']}
+
+    # Calculate the damage % from current health and damage dealt
+    damage_percent = round((damage / victim.health * 100))
+
+    # for each index of the damage dict, multiply it by 20
+    damage_index = [x * 20 for x in damage_verbs_dict.keys()]
+
+    # Using the indexes find the closest one to the damage percent
+    closest_index = min(damage_index, key=lambda x: abs(x - damage_percent))
+
+    # Using the best damage percent index get the damage verb list.
+    damage_verbs_list = damage_verbs_dict[damage_index.index(closest_index)]
+
+    # Grab a random verb from the list.
+    random_damage_verb = (damage_verbs_list[random.randint(0, len(damage_verbs_list)-1)])
+    return random_damage_verb.capitalize()
+
+
+def attack_update(item, attacker, victim, damage):
+    """
+    Helper function to inform the user of what happened during an attack.
+    Who took damage from what and how much was dished out.
+
+    :param dict item: The weapon item that was used in the attack.
+    :param class attacker: The class that performed the attack.
+    :param class victim: The class that received the attack.
+    :param float damage: The amount of damage dealt.
+    """
+    # Get a damage verb to spice things up.
+    verb = get_damage_verb(victim, damage)
+
+    # Getting the item's name
+    item_name = format_item_name(item["item_name"])
+
+    # Updating the player on what happened.
+    print(f'{attacker.name} Attacks {victim.name} using {item_name} for a {verb} {damage} Damage !')
