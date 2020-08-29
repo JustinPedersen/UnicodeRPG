@@ -145,7 +145,7 @@ class Monster(Character):
 
         # basic attributes
         self.health = 120.0
-        self.strength = 5000.0
+        self.strength = 50.0
         self.stamina = 30
         self.luck = 10
 

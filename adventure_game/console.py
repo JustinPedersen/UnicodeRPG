@@ -1,6 +1,7 @@
 """
 Methods for writing out to the console or getting user input.
 """
+import re
 import random
 
 
@@ -84,6 +85,8 @@ def correct_vowels(sentence):
     :returns: The grammatically correct sentence:
     :rtype: str
     """
+    regular_expression = r'( [aA] )([aAeEiIoOuU])'
+    return re.sub(regular_expression, r' an \2', sentence)
 
 
 def get_random_index(iterable):
@@ -154,7 +157,7 @@ def attack_update(attacker, victim, item, damage, attack_type):
                         f'wielding their {item_name}!'}
 
     # Updating the player on what happened.
-    print(sentence_dict[get_random_index(sentence_dict)])
+    print(correct_vowels(sentence_dict[get_random_index(sentence_dict)]))
 
 
 def death_message(deceased_character, killer=None):
