@@ -10,9 +10,6 @@ def main():
     monster = character.Monster('Wolf')
     hero = character.Character('Sheep')
 
-    print(hero.inventory)
-    print(hero.equipped)
-
     while hero.alive and monster.alive:
         # Player to attack
         console.draw_hud([hero, monster])

@@ -1,5 +1,5 @@
 """
-All character classes to defined here
+All character classes defined here
 """
 import random
 import console
@@ -55,63 +55,62 @@ class Character(object):
         """
         return random.randint(min_value, max_value) * multiplier
 
-    def __deal_damage(self, target_character, multiplier=1):
+    def __deal_damage(self, target_character, attack_index, multiplier=1):
         """
         Primary method for attacking and dealing damage. An attack will be performed for each item currently
         equipped in the player's inventory. The damage is calculated by using the character's strength + the
         weapon damage bonus to form the upper limit of damage possible.
 
         :param class target_character: The character to attack.
+        :param int attack_index: Index number of the attack from self.attack_actions
         :param float|optional multiplier: The multiplier for the final result of the attack. 1 by Default.
         """
+        # Get the attack type so that it can be used later.
+        attack_type = self.attack_actions[attack_index]['attack_type']
+
         # Perform an attack for each item that is currently equipped.
         for item in self.equipped:
             # Calculate the damage + apply it.
             upper_damage_limit = item['damage_bonus'] + self.strength
             damage = self.random_value(0, upper_damage_limit, multiplier)
 
-            # Update the user on what happened.
-            console.attack_update(item, self, target_character, damage)
+            if target_character.health > 0:
+                # Update the user on what happened + remove the health
+                console.attack_update(self, target_character, item, damage, attack_type)
 
-            # Remove the health
-            target_character.health -= damage
+                # If health drops below 0, the character will die.
+                if damage >= target_character.health:
+                    target_character.kill(killer=self)
+                else:
+                    target_character.health -= damage
 
-            # If health drops below 0, the character will die.
-            if target_character.health <= 0:
-                target_character.kill()
-
-    def _attack(self, target_character, stamina_cost, damage_multiplier):
+    def perform_attack(self, target_character, attack_index):
         """
         Base method for attacks. Attacks cost stamina and will drain it as they happen. If the character has
         enough stamina to perform the attack they will, if they have less than the required amount but more than
-        zero, they can still perform the action but its effectiveness will be diminished and after its been performed
+        zero, they can still perform the action but its effectiveness will be diminished and after it's been performed
         the character will have their stamina zero'd.
 
         :param target_character: The character to attack.
-        :param stamina_cost: Cost to the character's stamina bar.
-        :param damage_multiplier: How much the damage is amplified.
+        :param int attack_index: Index number of the attack from self.attack_actions
         """
+        stamina_cost = self.attack_actions[attack_index]['stamina_cost']
+        damage_multiplier = self.attack_actions[attack_index]['damage_multiplier']
+
         if self.stamina >= stamina_cost:
-            self.__deal_damage(target_character, multiplier=damage_multiplier)
+            self.__deal_damage(target_character,
+                               attack_index=attack_index,
+                               multiplier=damage_multiplier)
             self.stamina -= stamina_cost
 
         # Last stand, will zero stamina and be less effective.
         elif stamina_cost > self.stamina > 0:
-            self.__deal_damage(target_character, multiplier=damage_multiplier / 2)
+            self.__deal_damage(target_character,
+                               attack_index=attack_index,
+                               multiplier=damage_multiplier / 2)
             self.stamina = 0
         else:
             print(f'{self.name} does not have enough stamina to attack!')
-
-    def perform_attack(self, target_character, attack_index):
-        """
-        Perform a light attack onto a target character.
-
-        :param int attack_index: Index number of the attack from self.attack_actions
-        :param class target_character: The character to target.
-        """
-        self._attack(target_character=target_character,
-                     stamina_cost=self.attack_actions[attack_index]['stamina_cost'],
-                     damage_multiplier=self.attack_actions[attack_index]['damage_multiplier'])
 
     def heal(self, heal_amount, target_character=None, multiplier=1):
         """
@@ -129,13 +128,15 @@ class Character(object):
         TODO: Create a method for regeneration of stamina during a fight.
         """
 
-    def kill(self):
+    def kill(self, killer=None):
         """
-        Kill the current entity.
+        Kill the current entity and pass the events to the console to inform the player.
+
+        :param class|optional killer: If a killer is specified it will appear in the death message.
         """
         self.health = 0
         self.alive = False
-        print(f'{self.name} has died.')
+        console.death_message(self, killer)
 
 
 class Monster(Character):
@@ -143,9 +144,8 @@ class Monster(Character):
         super().__init__(name)
 
         # basic attributes
-        self.alive = True
         self.health = 120.0
-        self.strength = 50.0
+        self.strength = 5000.0
         self.stamina = 30
         self.luck = 10
 

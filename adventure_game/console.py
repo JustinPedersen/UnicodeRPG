@@ -64,15 +64,34 @@ def choose_action(header, actions_dict, tries=10):
             return 0
 
 
-def format_item_name(item_name):
+def format_name(name):
     """
     Helper function to format item names neatly for better representation.
 
-    :param str item_name: The item's name
+    :param str name: Name to be formatted.
     :return: Capitalised and separated name.
     :rtype: str
     """
-    return ' '.join([x.capitalize() for x in item_name.split('_')])
+    return ' '.join([x.capitalize() for x in name.split('_')])
+
+
+def correct_vowels(sentence):
+    """
+    Scan the input sentence and if it contains an 'a' followed by a letter beginning with a vowel, replace
+    the 'a' for 'an'
+
+    :param str sentence: The sentence to scan.
+    :returns: The grammatically correct sentence:
+    :rtype: str
+    """
+
+
+def get_random_index(iterable):
+    """
+    :return: From all available indexes in iterable, choose one at random and return it.
+    :rtype: int
+    """
+    return random.randint(0, len(iterable) - 1)
 
 
 def get_damage_verb(victim, damage):
@@ -103,25 +122,60 @@ def get_damage_verb(victim, damage):
     damage_verbs_list = damage_verbs_dict[damage_index.index(closest_index)]
 
     # Grab a random verb from the list.
-    random_damage_verb = (damage_verbs_list[random.randint(0, len(damage_verbs_list)-1)])
+    random_damage_verb = (damage_verbs_list[random.randint(0, len(damage_verbs_list) - 1)])
     return random_damage_verb.capitalize()
 
 
-def attack_update(item, attacker, victim, damage):
+def attack_update(attacker, victim, item, damage, attack_type):
     """
     Helper function to inform the user of what happened during an attack.
     Who took damage from what and how much was dished out.
 
-    :param dict item: The weapon item that was used in the attack.
     :param class attacker: The class that performed the attack.
-    :param class victim: The class that received the attack.
+    :param class victim: The class that received the attack
+    :param dict item: The weapon item that was used in the attack..
     :param float damage: The amount of damage dealt.
+    :param str attack_type: The type of attack used.
     """
-    # Get a damage verb to spice things up.
-    verb = get_damage_verb(victim, damage)
 
-    # Getting the item's name
-    item_name = format_item_name(item["item_name"])
+    verb = get_damage_verb(victim, damage)
+    item_name = format_name(item["item_name"])
+    attack = format_name(attack_type)
+
+    # Some more random sentence structures to add further spice.
+    sentence_dict = {0: f'{attacker.name} performs a {attack}, charging {victim.name} with '
+                        f'{item_name} and deals a {verb} {damage} Damage!',
+                     1: f'{attacker.name} {attack}\'s {victim.name} using {item_name}, for a {verb} {damage} Damage!',
+                     2: f'{attacker.name} {attack}\'s {victim.name} with {item_name}, '
+                        f'inflicting a {verb} {damage} Damage!',
+                     3: f'{attacker.name} assaults {victim.name} with their {attack} wielding a {item_name}, '
+                        f'administering a {verb} {damage} Damage in the process!',
+                     4: f'{victim.name} receives a {verb} {damage} Damage from {attacker.name}\'s {attack}, '
+                        f'wielding their {item_name}!'}
 
     # Updating the player on what happened.
-    print(f'{attacker.name} Attacks {victim.name} using {item_name} for a {verb} {damage} Damage !')
+    print(sentence_dict[get_random_index(sentence_dict)])
+
+
+def death_message(deceased_character, killer=None):
+    """
+    Display a death message to the player informing them that a character has died.
+
+    :param class deceased_character: Class of the deceased_character
+    :param class|optional killer: If there was a killer.
+    """
+    deceased_name = deceased_character.name
+    killer_name = killer.name if killer else ''
+
+    # 0 - No killer, 1 - NPC killer, 2 - NonNPC killer
+    death_msg_dict = {0: [f'{deceased_name} has died'],
+                      1: [f'{deceased_name} has been slain by {killer_name}',
+                          f'{deceased_name} has fallen in battle to {killer_name}',
+                          f'Bloodied and broken, {deceased_name} falls to the ground at the hands of {killer_name}',
+                          f'{deceased_name} draws their last breath as {killer_name} emerges victorious.',
+                          f'{killer_name} has bested {deceased_name} in battle.'],
+                      2: []}
+
+    index = 1 if killer else 0
+    random_index = random.randint(0, len(death_msg_dict[index]) - 1)
+    print(death_msg_dict[index][random_index])
