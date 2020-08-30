@@ -27,7 +27,18 @@ def draw_hud(characters):
     print(f'# {"-" * 50} #')
 
 
-def choose_action(header, actions_dict, tries=10):
+def format_attack_actions(index, attack_type, stamina_cost):
+    """
+    Attacks are formatted a bit differently display more info to the player.
+
+    :param int index: The index of the actions' dict to use.
+    :param str attack_type: Type of attack to perform.
+    :param int stamina_cost: Stamina cost of the action to display.
+    """
+    return '{}. {:30s} [{}]\n'.format(index, attack_type, stamina_cost)
+
+
+def choose_action(header, actions_dict, attack=False, back=False):
     """
     Format the options for a player's input, present them to the player and return the result of the decision.
 
@@ -36,33 +47,45 @@ def choose_action(header, actions_dict, tries=10):
                               > {1: {'type': 'light_attack', 'stamina': 10, 'damage_multiplier': 1 }}
                               NOTE: Index should begin at 1. If a value of 0 is returned the player has not been
                               able to make a choice.
-    :param int tries: Number of tries the player gets before exiting the loop.
+    :param bool attack: If True format this action as an attack.
+    :param bool back: If True will add an extra item to the end for going back in the menus.
     :return: The resulting decision index from the actions_dict.
     :rtype: int
     """
-    input_string = f'> {header}:\n'
+    options_string = f'> {header}:\n'
 
     for index, action in actions_dict.items():
-        input_string += '{}. {:30s} [{}]\n'.format(index, action['attack_type'], action['stamina_cost'])
+        if attack:
+            options_string += format_attack_actions(index,
+                                                    action['type'],
+                                                    action['stamina_cost'])
 
-    # Present the player with the options
-    print(input_string)
+        else:
+            options_string += f'{index}. {action["type"]}\n'
+
+    if back:
+        options_string += f'{len(actions_dict.items())+1}. Back\n'
+
+    # Present the player with the options, excluding the last new line.
+    print(options_string[:-1])
 
     # Obtain the answer from the player
-    tries_count = 0
+    num_actions = len(actions_dict.keys()) if not back else len(actions_dict.keys()) + 1
+
     while True:
         result = input()
 
-        # If the result is a digit and in the actions' dict.
         if result.isdigit() and int(result) in actions_dict.keys():
+            # If the result is a digit and in the actions' dict.
             return int(result)
-        else:
-            print(f'Please choose a number between 1 and {len(actions_dict.keys())}')
 
-        # If the player can't make a choice, return zero.
-        tries_count += 1
-        if tries_count >= tries:
+        elif back and result.isdigit() and result == str(num_actions):
+            # If the result is the back option
             return 0
+
+        else:
+            # The user has input the wrong answer.
+            print(f'Please choose a number between 1 and {num_actions}')
 
 
 def format_name(name):
@@ -151,7 +174,7 @@ def attack_update(attacker, victim, item, damage, attack_type):
                      1: f'{attacker.name} {attack}\'s {victim.name} using {item_name}, for a {verb} {damage} Damage!',
                      2: f'{attacker.name} {attack}\'s {victim.name} with {item_name}, '
                         f'inflicting a {verb} {damage} Damage!',
-                     3: f'{attacker.name} assaults {victim.name} with their {attack} wielding a {item_name}, '
+                     3: f'{attacker.name} assaults {victim.name} with their {attack} wielding {item_name}, '
                         f'administering a {verb} {damage} Damage in the process!',
                      4: f'{victim.name} receives a {verb} {damage} Damage from {attacker.name}\'s {attack}, '
                         f'wielding their {item_name}!'}

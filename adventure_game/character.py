@@ -30,16 +30,22 @@ class Character(object):
 
         self.equipped = [self.inventory['weapons'][0]]
 
+        # Basic combat actions
+        self.combat_actions = {1: {'type': 'Attack'},
+                               2: {'type': 'Block'},
+                               3: {'type': 'Rest'},
+                               4: {'type': 'Inventory'}}
+
         # Basic attack actions that are picked up and used by the console and actions methods.
-        self.attack_actions = {1: {'attack_type': 'light_attack',
+        self.attack_actions = {1: {'type': 'light_attack',
                                    'stamina_cost': 10,
                                    'damage_multiplier': 1
                                    },
-                               2: {'attack_type': 'medium_attack',
+                               2: {'type': 'medium_attack',
                                    'stamina_cost': 20,
                                    'damage_multiplier': 1.5
                                    },
-                               3: {'attack_type': 'heavy_attack',
+                               3: {'type': 'heavy_attack',
                                    'stamina_cost': 30,
                                    'damage_multiplier': 2
                                    }}
@@ -66,7 +72,7 @@ class Character(object):
         :param float|optional multiplier: The multiplier for the final result of the attack. 1 by Default.
         """
         # Get the attack type so that it can be used later.
-        attack_type = self.attack_actions[attack_index]['attack_type']
+        attack_type = self.attack_actions[attack_index]['type']
 
         # Perform an attack for each item that is currently equipped.
         for item in self.equipped:
@@ -145,12 +151,12 @@ class Monster(Character):
 
         # basic attributes
         self.health = 120.0
-        self.strength = 50.0
+        self.strength = 40.0
         self.stamina = 30
         self.luck = 10
 
         # Inventory and equipped items.
-        self.inventory = {'weapons': {0: {'item_name': 'razor_claws',
+        self.inventory = {'weapons': {0: {'item_name': 'claws',
                                           'damage_bonus': 20,
                                           'durability': 0}}
                           }
