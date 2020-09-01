@@ -176,11 +176,12 @@ def attack_update(attacker, victim, item, damage, attack_type):
                         f'inflicting a {verb} {damage} Damage!',
                      3: f'{attacker.name} assaults {victim.name} with their {attack} wielding {item_name}, '
                         f'administering a {verb} {damage} Damage in the process!',
-                     4: f'{victim.name} receives a {verb} {damage} Damage from {attacker.name}\'s {attack}, '
-                        f'wielding their {item_name}!'}
+                     4: f'{victim.name} receives a {verb} {damage} Damage from {attacker.name}\'s {attack}'
+                        f'wielding their {item_name}, lowering {victim.name}\'s health to {victim.health-damage}!'}
 
     # Updating the player on what happened.
-    print(correct_vowels(sentence_dict[get_random_index(sentence_dict)]))
+    random_index = random.randint(0, len(sentence_dict) - 1)
+    print(correct_vowels(sentence_dict[random_index]))
 
 
 def death_message(deceased_character, killer=None):
@@ -205,3 +206,39 @@ def death_message(deceased_character, killer=None):
     index = 1 if killer else 0
     random_index = random.randint(0, len(death_msg_dict[index]) - 1)
     print(death_msg_dict[index][random_index])
+
+
+def rest_message(character, info):
+    """
+    Inform the player of who rested and by how much.
+
+    :param class character: Class of the character who rested.
+    :param dict info: dictionary of info given as such:
+                    {'attribute name': amount regenerated}
+
+    """
+    rest_msg_list = [f'{character.name} takes a knee to regenerate',
+                     f'{character.name} steps back from battle for a moment to regenerate',
+                     f'Knowing that time is precious, {character.name} takes a moment to rest, replenishing',
+                     f'The wise {character.name} pauses to rejuvenating',
+                     f'Short of breath, {character.name} pulls back to refresh',
+                     f'Noticing that they have only {character.stamina} Stamina and {character.health} Health, '
+                     f'{character.name} steps back momentarily restoring']
+
+    # Choosing a random base sentence
+    message = rest_msg_list[random.randint(0, len(rest_msg_list) - 1)]
+
+    # Adding the updates to it.
+    for i, (attribute, value) in enumerate(info.items()):
+
+        # Deciding how to join the sentence together.
+        if i == 0:
+            joiner = ''
+        elif i == len(info) - 1:
+            joiner = ' and'
+        else:
+            joiner = ','
+
+        message += f'{joiner} {value} {attribute}'
+
+    print(message)

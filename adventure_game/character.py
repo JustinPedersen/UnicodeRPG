@@ -17,9 +17,9 @@ class Character(object):
 
         # basic attributes
         self.alive = True
-        self.health = 100.0
+        self.health = 200
         self.strength = 50.0
-        self.stamina = 50
+        self.stamina = 0
         self.luck = 10
 
         # Inventory and equipped items.
@@ -78,7 +78,9 @@ class Character(object):
         for item in self.equipped:
             # Calculate the damage + apply it.
             upper_damage_limit = item['damage_bonus'] + self.strength
-            damage = self.random_value(0, upper_damage_limit, multiplier)
+            lower_damage_limit = self.strength * 0.1
+
+            damage = self.random_value(lower_damage_limit, upper_damage_limit, multiplier)
 
             if target_character.health > 0:
                 # Update the user on what happened + remove the health
@@ -118,21 +120,42 @@ class Character(object):
         else:
             print(f'{self.name} does not have enough stamina to attack!')
 
-    def heal(self, heal_amount, target_character=None, multiplier=1):
+    def regenerate(self, amount, attribute, target_character=None, multiplier=1):
         """
         Primary method for healing. By default, healing will be applied to self.
 
-        :param float heal_amount: The amount to heal by.
-        :param class|optional target_character: The character to heal.
-        :param multiplier: The multiplier for the final result for healing. 1 by Default.
+        :param float amount: The amount to regenerate by.
+        :param str attribute: The attribute to regenerate, eg: health
+        :param class|optional target_character: The character to regenerate the attribute on, default is self.
+        :param multiplier: The multiplier for the final result for regeneration. 1 by Default.
         """
         target_character = self if not target_character else target_character
-        target_character.health += heal_amount * multiplier
+        new_value = getattr(target_character, attribute) + amount * multiplier
+        setattr(target_character, attribute, new_value)
 
     def rest(self):
         """
-        TODO: Create a method for regeneration of stamina during a fight.
+        Take a knee and rest during a fight to regain some health and stamina.
+        TODO: Influence this by luck.
+
+        :param float max_percent: The upper limit for the % of the attribute to regenerate by.
+        :param float min_percent: The lower limit for the % of the attribute to regenerate by.
         """
+        rest_results = {}
+        for attribute in ['health', 'stamina']:
+            # Chance to regenerate 10 - 25 % of the attribute by default.
+            upper_limit = round((getattr(self, attribute) * 0.10) + self.strength)
+
+            amount = random.randint(10, upper_limit)
+            rest_results[attribute] = amount
+
+            self.regenerate(amount=amount,
+                            attribute=attribute,
+                            target_character=self,
+                            multiplier=1)
+
+        # Updating the player on what happened.
+        console.rest_message(self, rest_results)
 
     def kill(self, killer=None):
         """
@@ -147,12 +170,14 @@ class Character(object):
 
 class Monster(Character):
     def __init__(self, name):
+        # TODO: Combat subroutines for AI to decide what to do.
         super().__init__(name)
+        self.info = 'A hurt Wolf bites back, hard.'
 
         # basic attributes
         self.health = 120.0
         self.strength = 40.0
-        self.stamina = 30
+        self.stamina = 0
         self.luck = 10
 
         # Inventory and equipped items.
@@ -162,3 +187,24 @@ class Monster(Character):
                           }
 
         self.equipped = [self.inventory['weapons'][0]]
+
+    def choose_combat_action(self, player):
+        """
+        Choose an action to perform given the circumstances. This is the base decision-making AI for
+        basic monsters.
+
+        :param class player: The player class, this is what will be attacked.
+        """
+
+        if self.stamina <= 10 or self.health <= 10:
+            # If health or stamina are low, take a rest.
+            self.rest()
+
+        elif self.health <= 30:
+            # If health is low, Hit back hard.
+            self.perform_attack(player, 3)
+
+        else:
+            # Attack the player with a random attack, excluding heavy.
+            attack_index = random.randint(1, len(self.attack_actions) - 1)
+            self.perform_attack(player, attack_index)

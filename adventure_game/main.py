@@ -45,7 +45,7 @@ def combat(player, enemy):
 
         # REST
         if combat_action == 3:
-            continue
+            player.rest()
 
         # INVENTORY
         if combat_action == 4:
@@ -53,8 +53,7 @@ def combat(player, enemy):
 
         # If the monster is alive, play its turn.
         if enemy.alive:
-            # print(f'{enemy.name} turn to attack')
-            enemy.perform_attack(player, 3)
+            enemy.choose_combat_action(player)
 
     print('-' * 20)
     print(f'{enemy.name} : {enemy.alive}')
