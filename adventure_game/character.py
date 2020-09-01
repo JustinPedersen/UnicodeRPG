@@ -19,7 +19,7 @@ class Character(object):
         self.alive = True
         self.health = 200
         self.strength = 50.0
-        self.stamina = 0
+        self.stamina = 100
         self.luck = 10
 
         # Inventory and equipped items.
@@ -177,7 +177,7 @@ class Monster(Character):
         # basic attributes
         self.health = 120.0
         self.strength = 40.0
-        self.stamina = 0
+        self.stamina = 30
         self.luck = 10
 
         # Inventory and equipped items.
